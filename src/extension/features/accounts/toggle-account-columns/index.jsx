@@ -5,6 +5,7 @@ import { Feature } from 'toolkit/extension/features/feature';
 import {
   getAccountsService,
   getModalService,
+  getRegisterGridService,
   isCurrentRouteAccountsPage,
 } from 'toolkit/extension/utils/ynab';
 import { l10n, getToolkitStorageKey, setToolkitStorageKey } from 'toolkit/extension/utils/toolkit';
@@ -98,6 +99,15 @@ export class ToggleAccountColumns extends Feature {
     } else {
       $('body').removeClass('tk-hide-memos');
     }
+
+    // The memo column is hidden/shown with a CSS class instead of YNAB's own
+    // column APIs, so registerGrid's saved percentage widths still reserve
+    // memo's share even while it's invisible, leaving a dead gap where it
+    // used to be. saveColumnSizes() with no arguments recalculates and
+    // persists widths from whatever is actually visible right now (it's the
+    // same call the "Reset Column Widths" button makes) - do it automatically
+    // instead of requiring a manual reset every time this is toggled.
+    getRegisterGridService()?.saveColumnSizes();
   };
 
   onRouteChanged() {
